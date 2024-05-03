@@ -16,8 +16,17 @@ const { title } = Astro.props;
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 	</head>
-	<body>
-		<slot />
+	<body class="latte dark:mocha bg-base">
+		<main><slot /></main>
+		<footer class="bg-crust">
+			<p class="text-blue">
+				View the source at <a
+					href="https://github.com/kcoderhtml/catapult-mailer"
+					target="_blank"
+					rel="noopener noreferrer">kcoderhtml/catapult-mailer</a
+				>
+			</p>
+		</footer>
 	</body>
 </html>
 <style is:global>
@@ -47,5 +56,28 @@ const { title } = Astro.props;
 			Bitstream Vera Sans Mono,
 			Courier New,
 			monospace;
+	}
+
+	body {
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		min-height: 100vh;
+	}
+
+	main {
+		flex: 1;
+		flex-direction: column;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding-left: 2rem;
+		padding-right: 2rem;
+	}
+
+	footer {
+		padding: 1rem;
+		text-align: center;
 	}
 </style>
