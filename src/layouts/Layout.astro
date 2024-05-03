@@ -18,12 +18,13 @@ const { title } = Astro.props;
 	</head>
 	<body class="latte dark:mocha bg-base">
 		<main><slot /></main>
-		<footer class="bg-crust">
-			<p class="text-blue">
+		<footer class="bg-crust prose prose-neutral dark:prose-invert max-w-full">
+			<p>
 				View the source at <a
 					href="https://github.com/kcoderhtml/catapult-mailer"
 					target="_blank"
-					rel="noopener noreferrer">kcoderhtml/catapult-mailer</a
+					rel="noopener noreferrer"
+					class="text-green">kcoderhtml/catapult-mailer</a
 				>
 			</p>
 		</footer>
