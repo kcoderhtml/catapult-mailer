@@ -7,6 +7,6 @@ import playformCompress from "@playform/compress";
 // https://astro.build/config
 export default defineConfig({
 	output: "server",
-	adapter: netlify(),
+	adapter: netlify({ edgeMiddleware: true }),
 	integrations: [tailwind(), playformCompress()],
 });
