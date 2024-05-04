@@ -7,8 +7,7 @@ const PUBLIC_ROUTES = ["/", "/favicon.ico"];
 // `context` and `next` are automatically typed
 export const auth = defineMiddleware(async (context, next,) => {
     const cookieName = "session";
-    const sessionCookie = context.request.headers.get("Cookie")?.split(";").map((c) => c.trim()).find((c) => c.startsWith(cookieName + "="))?.trim().split("=")[1];
-    console.log("sessionCookie", sessionCookie);
+    const sessionCookie = context.cookies.get(cookieName);
 
     // Ignore auth validation for public routes
     if (PUBLIC_ROUTES.includes(context.url.pathname) && sessionCookie === undefined) {
@@ -31,7 +30,7 @@ export const auth = defineMiddleware(async (context, next,) => {
         return unauthorized(`Required ${cookieName} cookie not found. Please login to access this resource.`);
     }
 
-    const decodedSession: DecodeResult = decodeSession(process.env.JWT_SECRET, sessionCookie);
+    const decodedSession: DecodeResult = decodeSession(process.env.JWT_SECRET, sessionCookie.value);
 
     if (decodedSession.type === "integrity-error" || decodedSession.type === "invalid-token") {
         return unauthorized(`Failed to decode or validate authorization token. Reason: ${decodedSession.type}.`);
