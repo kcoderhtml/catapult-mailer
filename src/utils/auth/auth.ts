@@ -142,6 +142,16 @@ export async function createSession(code: string, url: string): Promise<EncodeRe
     }
 }
 
+export function getSession(token: string): Session | null {
+    const decodedSession = decodeSession(process.env.JWT_SECRET, token);
+
+    if (decodedSession.type === "valid") {
+        return decodedSession.session;
+    }
+
+    return null;
+}
+
 export function encodeSession(secretKey: string | undefined, partialSession: PartialSession): EncodeResult {
     if (!secretKey) {
         throw new Error("No secret key provided.");
