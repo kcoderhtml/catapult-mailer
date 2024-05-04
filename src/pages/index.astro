@@ -1,5 +1,108 @@
 ---
 import Layout from "../layouts/Layout.astro";
+if (
+	Astro.request.method === "GET" &&
+	Astro.url.searchParams.get("code") !== null
+) {
+	try {
+		const code = Astro.url.searchParams.get("code");
+		const clientID = import.meta.env.SLACK_CLIENT_ID;
+		const clientSecret = import.meta.env.SLACK_CLIENT_SECRET;
+		const slackURL = `https://slack.com/api/oauth.v2.access?code=${code}&client_id=${clientID}&client_secret=${clientSecret}&redirect_uri=${Astro.url.origin}`;
+
+		const response = await fetch(slackURL, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/x-www-form-urlencoded",
+			},
+		});
+
+		const data = await response.json();
+
+		if (!data.ok) {
+			console.error(data.error);
+			return new Response(data.error, {
+				status: 302,
+				headers: {
+					Location: (new URL(Astro.url.origin).search =
+						"?" +
+						new URLSearchParams({
+							error: data.error,
+						})),
+				},
+			});
+		} else {
+			console.log(data);
+		}
+
+		// get user profile
+
+		const profileResponse = await fetch(
+			"https://slack.com/api/openid.connect.userInfo",
+			{
+				method: "GET",
+				headers: { Authorization: `Bearer ${data.authed_user.access_token}` },
+			}
+		);
+		const profileData = (await profileResponse.json()) as {
+			ok: boolean;
+			error: string | null;
+			sub: string;
+			"https://slack.com/user_id": string;
+			"https://slack.com/team_id": string;
+			email: string;
+			email_verified: boolean;
+			date_email_verified: number;
+			name: string;
+			picture: string;
+			given_name: string;
+			family_name: string;
+			locale: string;
+			"https://slack.com/team_name": string;
+			"https://slack.com/team_domain": string;
+			"https://slack.com/user_image_24": string;
+			"https://slack.com/user_image_32": string;
+			"https://slack.com/user_image_48": string;
+			"https://slack.com/user_image_72": string;
+			"https://slack.com/user_image_192": string;
+			"https://slack.com/user_image_512": string;
+			"https://slack.com/team_image_34": string;
+			"https://slack.com/team_image_44": string;
+			"https://slack.com/team_image_68": string;
+			"https://slack.com/team_image_88": string;
+			"https://slack.com/team_image_102": string;
+			"https://slack.com/team_image_132": string;
+			"https://slack.com/team_image_230": string;
+			"https://slack.com/team_image_default": boolean;
+		};
+
+		if (!profileData.ok) {
+			console.error(profileData.error);
+			return new Response(profileData.error, {
+				status: 302,
+				headers: {
+					Location: (new URL(Astro.url.origin).search =
+						"?" +
+						new URLSearchParams({
+							error: profileData.error || "Profile data error",
+						})),
+				},
+			});
+		}
+
+		console.log(data);
+		console.log(profileData);
+
+		return new Response("Success", {
+			status: 302,
+			headers: {
+				Location: Astro.url.origin,
+			},
+		});
+	} catch (error) {
+		console.error(error);
+	}
+}
 ---
 
 <Layout title="Welcome to Astro.">
@@ -7,9 +110,66 @@ import Layout from "../layouts/Layout.astro";
 		class="prose lg:prose-xl text-center prose-neutral dark:prose-invert"
 	>
 		<h1>Welcome to Catapult Mailer!</h1>
+		{
+			Astro.url.searchParams.get("error") && (
+				<p class="text-red-500">Error: {Astro.url.searchParams.get("error")}</p>
+			)
+		}
 		<p>
 			This site and the Catapult Mailer project are still under development.
 			Please check back later for updates. (3-5 business days)
 		</p>
+
+		<p>
+			To get started, sign in with your Slack account to access the Catapult
+			Mailer dashboard. We will never post anything to your Slack account or
+			share your information with third parties. We only use your Slack account
+			to authenticate you and provide access to the Catapult Mailer dashboard.
+		</p>
 	</article>
+	<section>
+		<a
+			id="slack-sign-in"
+			class="slack-button bg-blue text-mantle dark:text-crust"
+			href=`https://slack.com/openid/connect/authorize?scope=openid%20email%20profile&response_type=code&redirect_uri=${Astro.url.origin}&client_id=2210535565.6593702300176`
+			><svg
+				xmlns="http://www.w3.org/2000/svg"
+				style="height:20px;width:20px;margin-right:12px"
+				viewBox="0 0 122.8 122.8"
+				><path
+					d="M25.8 77.6c0 7.1-5.8 12.9-12.9 12.9S0 84.7 0 77.6s5.8-12.9 12.9-12.9h12.9v12.9zm6.5 0c0-7.1 5.8-12.9 12.9-12.9s12.9 5.8 12.9 12.9v32.3c0 7.1-5.8 12.9-12.9 12.9s-12.9-5.8-12.9-12.9V77.6z"
+					fill="#e01e5a"></path><path
+					d="M45.2 25.8c-7.1 0-12.9-5.8-12.9-12.9S38.1 0 45.2 0s12.9 5.8 12.9 12.9v12.9H45.2zm0 6.5c7.1 0 12.9 5.8 12.9 12.9s-5.8 12.9-12.9 12.9H12.9C5.8 58.1 0 52.3 0 45.2s5.8-12.9 12.9-12.9h32.3z"
+					fill="#36c5f0"></path><path
+					d="M97 45.2c0-7.1 5.8-12.9 12.9-12.9s12.9 5.8 12.9 12.9-5.8 12.9-12.9 12.9H97V45.2zm-6.5 0c0 7.1-5.8 12.9-12.9 12.9s-12.9-5.8-12.9-12.9V12.9C64.7 5.8 70.5 0 77.6 0s12.9 5.8 12.9 12.9v32.3z"
+					fill="#2eb67d"></path><path
+					d="M77.6 97c7.1 0 12.9 5.8 12.9 12.9s-5.8 12.9-12.9 12.9-12.9-5.8-12.9-12.9V97h12.9zm0-6.5c-7.1 0-12.9-5.8-12.9-12.9s5.8-12.9 12.9-12.9h32.3c7.1 0 12.9 5.8 12.9 12.9s-5.8 12.9-12.9 12.9H77.6z"
+					fill="#ecb22e"></path></svg
+			>Sign in with Slack</a
+		>
+	</section>
 </Layout>
+
+<style>
+	.slack-button {
+		border: none;
+		padding: 15px 32px;
+		text-align: center;
+		text-decoration: none;
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		align-items: center;
+		font-size: 16px;
+		margin: 4px 2px;
+		cursor: pointer;
+		border-radius: 8px;
+	}
+
+	section {
+		padding-top: 1.5rem;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+</style>
