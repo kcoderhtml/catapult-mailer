@@ -35,6 +35,8 @@ if (
 			sameSite: "strict",
 			expires: new Date(jwtToken.expires + gracePeriod),
 		});
+		
+		session = getSession(jwtToken.token);
 	} catch (error) {
 		if (error instanceof Error) {
 			console.error(error);
