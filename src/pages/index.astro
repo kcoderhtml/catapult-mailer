@@ -1,106 +1,37 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { createSession, gracePeriod } from "../utils/auth/auth";
+
+let errorMsg: string | null = Astro.url.searchParams.get("error");
+
 if (
 	Astro.request.method === "GET" &&
 	Astro.url.searchParams.get("code") !== null
 ) {
 	try {
 		const code = Astro.url.searchParams.get("code");
-		const clientID = import.meta.env.SLACK_CLIENT_ID;
-		const clientSecret = import.meta.env.SLACK_CLIENT_SECRET;
-		const slackURL = `https://slack.com/api/oauth.v2.access?code=${code}&client_id=${clientID}&client_secret=${clientSecret}&redirect_uri=${Astro.url.origin}`;
-
-		const response = await fetch(slackURL, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/x-www-form-urlencoded",
-			},
-		});
-
-		const data = await response.json();
-
-		if (!data.ok) {
-			console.error(data.error);
-			return new Response(data.error, {
-				status: 302,
-				headers: {
-					Location: (new URL(Astro.url.origin).search =
-						"?" +
-						new URLSearchParams({
-							error: data.error,
-						})),
-				},
-			});
-		} else {
-			console.log(data);
+		if (!code) {
+			throw new Error("No code provided");
 		}
 
-		// get user profile
+		const jwtToken = await createSession(code, Astro.url.origin);
 
-		const profileResponse = await fetch(
-			"https://slack.com/api/openid.connect.userInfo",
-			{
-				method: "GET",
-				headers: { Authorization: `Bearer ${data.authed_user.access_token}` },
-			}
-		);
-		const profileData = (await profileResponse.json()) as {
-			ok: boolean;
-			error: string | null;
-			sub: string;
-			"https://slack.com/user_id": string;
-			"https://slack.com/team_id": string;
-			email: string;
-			email_verified: boolean;
-			date_email_verified: number;
-			name: string;
-			picture: string;
-			given_name: string;
-			family_name: string;
-			locale: string;
-			"https://slack.com/team_name": string;
-			"https://slack.com/team_domain": string;
-			"https://slack.com/user_image_24": string;
-			"https://slack.com/user_image_32": string;
-			"https://slack.com/user_image_48": string;
-			"https://slack.com/user_image_72": string;
-			"https://slack.com/user_image_192": string;
-			"https://slack.com/user_image_512": string;
-			"https://slack.com/team_image_34": string;
-			"https://slack.com/team_image_44": string;
-			"https://slack.com/team_image_68": string;
-			"https://slack.com/team_image_88": string;
-			"https://slack.com/team_image_102": string;
-			"https://slack.com/team_image_132": string;
-			"https://slack.com/team_image_230": string;
-			"https://slack.com/team_image_default": boolean;
-		};
-
-		if (!profileData.ok) {
-			console.error(profileData.error);
-			return new Response(profileData.error, {
-				status: 302,
-				headers: {
-					Location: (new URL(Astro.url.origin).search =
-						"?" +
-						new URLSearchParams({
-							error: profileData.error || "Profile data error",
-						})),
-				},
-			});
+		if (!jwtToken) {
+			throw new Error("Failed to create session");
 		}
 
-		console.log(data);
-		console.log(profileData);
-
-		return new Response("Success", {
-			status: 302,
-			headers: {
-				Location: Astro.url.origin,
-			},
+		Astro.cookies.set("session", jwtToken.token, {
+			path: "/",
+			httpOnly: true,
+			secure: true,
+			sameSite: "strict",
+			expires: new Date(jwtToken.expires + gracePeriod),
 		});
 	} catch (error) {
-		console.error(error);
+		if (error instanceof Error) {
+			console.error(error);
+			errorMsg = error.message;
+		}
 	}
 }
 ---
@@ -111,7 +42,7 @@ if (
 	>
 		<h1>Welcome to Catapult Mailer!</h1>
 		{
-			Astro.url.searchParams.get("error") && (
+			errorMsg && (
 				<p class="text-red-500">Error: {Astro.url.searchParams.get("error")}</p>
 			)
 		}

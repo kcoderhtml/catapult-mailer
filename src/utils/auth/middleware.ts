@@ -1,6 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import type { DecodeResult, ExpirationStatus, Session } from "./auth";
-import { decodeSession, encodeSession, checkExpirationStatus } from "./auth";
+import { decodeSession, encodeSession, checkExpirationStatus, gracePeriod } from "./auth";
 
 const PUBLIC_ROUTES = ["/", "/login"];
 
@@ -22,15 +22,16 @@ export const auth = defineMiddleware(async (context, next,) => {
         });
     }
 
-    const requestHeader = "X-JWT-Token";
-    const responseHeader = "X-Renewed-JWT-Token";
-    const header = context.request.headers.get(requestHeader);
+    const cookieName = "session";
+    const sessionCookie = context.cookies.get(cookieName);
 
-    if (!header) {
-        return unauthorized(`Required ${requestHeader} header not found. Please login to access this resource.`);
+    console.log("Session cookie: ", sessionCookie)
+
+    if (!sessionCookie) {
+        return unauthorized(`Required ${cookieName} cookie not found. Please login to access this resource.`);
     }
 
-    const decodedSession: DecodeResult = decodeSession(process.env.JWT_SECRET, header);
+    const decodedSession: DecodeResult = decodeSession(process.env.JWT_SECRET, sessionCookie.value);
 
     if (decodedSession.type === "integrity-error" || decodedSession.type === "invalid-token") {
         return unauthorized(`Failed to decode or validate authorization token. Reason: ${decodedSession.type}.`);
@@ -54,15 +55,10 @@ export const auth = defineMiddleware(async (context, next,) => {
             issued: issued
         };
 
-        context.request.headers.set(responseHeader, token);
+        context.cookies.set(cookieName, token, { expires: new Date(expires + gracePeriod) });
     } else {
         session = decodedSession.session;
     }
-
-    // Set the session on response.locals object for routes to access
-    context.locals.session = session;
-
-    console.log("Middleware: onRequest");
 
     // Request has a valid or renewed session. Call next to continue to the authenticated route handler
     return next();

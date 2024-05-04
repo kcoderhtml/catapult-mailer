@@ -52,6 +52,7 @@ export type ExpirationStatus = "expired" | "active" | "grace";
 
 // Always use HS512 to sign the token
 const algorithm: TAlgorithm = "HS512";
+export const gracePeriod = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
 
 export async function createSession(code: string, url: string): Promise<EncodeResult | null> {
     try {
@@ -148,8 +149,8 @@ export function encodeSession(secretKey: string | undefined, partialSession: Par
 
     // Determine when the token should expire
     const issued = Date.now();
-    const oneDayInMs = 24 * 60 * 60 * 1000;
-    const expires = issued + oneDayInMs;
+    const fifteenMinutesInMs = 15 * 60 * 1000;
+    const expires = issued + fifteenMinutesInMs;
     const session: Session = {
         ...partialSession,
         issued: issued,
@@ -211,10 +212,9 @@ export function checkExpirationStatus(token: Session): ExpirationStatus {
     if (token.expires > now) return "active";
 
     // Find the timestamp for the end of the token's grace period
-    const threeHoursInMs = 3 * 60 * 60 * 1000;
-    const threeHoursAfterExpiration = token.expires + threeHoursInMs;
+    const gracePeriodAfterExpiration = token.expires + gracePeriod;
 
-    if (threeHoursAfterExpiration > now) return "grace";
+    if (gracePeriodAfterExpiration > now) return "grace";
 
     return "expired";
 }
