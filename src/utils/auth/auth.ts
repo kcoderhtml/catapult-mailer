@@ -163,7 +163,11 @@ export function encodeSession(secretKey: string | undefined, partialSession: Par
     };
 }
 
-export function decodeSession(secretKey: string, tokenString: string): DecodeResult {
+export function decodeSession(secretKey: string | undefined, tokenString: string): DecodeResult {
+    if (!secretKey) {
+        throw new Error("No secret key provided.");
+    }
+
     let result: Session;
 
     try {
