@@ -1,4 +1,6 @@
-import { encode, decode, type TAlgorithm } from "jwt-simple";
+import type { TAlgorithm } from "jwt-simple";
+import pkg from 'jwt-simple';
+const { encode, decode } = pkg
 
 export interface Session {
     id: number;
