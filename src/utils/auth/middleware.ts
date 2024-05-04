@@ -2,34 +2,36 @@ import { defineMiddleware } from "astro:middleware";
 import type { DecodeResult, ExpirationStatus, Session } from "./auth";
 import { decodeSession, encodeSession, checkExpirationStatus, gracePeriod } from "./auth";
 
-const PUBLIC_ROUTES = ["/", "/login"];
+const PUBLIC_ROUTES = ["/", "/favicon.ico"];
 
 // `context` and `next` are automatically typed
 export const auth = defineMiddleware(async (context, next,) => {
+    const cookieName = "session";
+    const sessionCookie = context.request.headers.get("Cookie")?.split(";").map((c) => c.trim()).find((c) => c.startsWith(cookieName + "="))?.trim().split("=")[1];
+    console.log("sessionCookie", sessionCookie);
+
     // Ignore auth validation for public routes
-    if (PUBLIC_ROUTES.includes(context.url.pathname)) {
+    if (PUBLIC_ROUTES.includes(context.url.pathname) && sessionCookie === undefined) {
         // Respond as usual 
         return next();
     }
 
-    const unauthorized = (message: string) => {
+    const unauthorized = (message: string, remove?: boolean) => {
         return new Response(message, {
             status: 302,
             statusText: "Unauthorized",
             headers: {
-                Location: context.url.origin + "?error=" + encodeURIComponent(message)
+                Location: context.url.origin + "?error=" + encodeURIComponent(message),
+                "Set-Cookie": remove ? `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;` : ""
             }
         });
-    }
-
-    const cookieName = "session";
-    const sessionCookie = context.cookies.get(cookieName);
+    };
 
     if (!sessionCookie) {
         return unauthorized(`Required ${cookieName} cookie not found. Please login to access this resource.`);
     }
 
-    const decodedSession: DecodeResult = decodeSession(process.env.JWT_SECRET, sessionCookie.value);
+    const decodedSession: DecodeResult = decodeSession(process.env.JWT_SECRET, sessionCookie);
 
     if (decodedSession.type === "integrity-error" || decodedSession.type === "invalid-token") {
         return unauthorized(`Failed to decode or validate authorization token. Reason: ${decodedSession.type}.`);
@@ -38,7 +40,7 @@ export const auth = defineMiddleware(async (context, next,) => {
     const expiration: ExpirationStatus = checkExpirationStatus(decodedSession.session);
 
     if (expiration === "expired") {
-        return unauthorized(`Authorization token has expired. Please create a new authorization token by logging in again.`);
+        return unauthorized(`Authorization token has expired. Please create a new authorization token by logging in again.`, true);
     }
 
 
