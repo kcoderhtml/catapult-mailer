@@ -25,8 +25,6 @@ export const auth = defineMiddleware(async (context, next,) => {
     const cookieName = "session";
     const sessionCookie = context.cookies.get(cookieName);
 
-    console.log("Session cookie: ", sessionCookie)
-
     if (!sessionCookie) {
         return unauthorized(`Required ${cookieName} cookie not found. Please login to access this resource.`);
     }
