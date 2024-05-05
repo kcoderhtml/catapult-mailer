@@ -28,15 +28,14 @@ if (
 			throw new Error("Failed to create session");
 		}
 
-		Astro.cookies.set("session", jwtToken.token, {
-			path: "/",
-			httpOnly: true,
-			secure: true,
-			sameSite: "strict",
-			expires: new Date(jwtToken.expires + gracePeriod),
+		// reload the page to remove the code from the URL but keep state
+		return new Response(null, {
+			status: 303,
+			headers: {
+				location: Astro.url.pathname + "?checkSession=true",
+				"Set-Cookie": `session=${jwtToken.token}; Path=/; HttpOnly; Secure; SameSite=Strict; Expires=${new Date(jwtToken.expires + gracePeriod).toUTCString()}`
+			},
 		});
-		
-		session = getSession(jwtToken.token);
 	} catch (error) {
 		if (error instanceof Error) {
 			console.error(error);
@@ -69,7 +68,7 @@ if (
 		</p>
 	</article>
 	{
-		session && (
+		(session || Astro.url.searchParams.get("checkSession")) && (
 			<section>
 				<a
 					class="slack-button bg-lavender dark:bg-blue text-mantle dark:text-crust"
@@ -82,7 +81,7 @@ if (
 	
 	}
 	{
-		!session && (
+		!session && !Astro.url.searchParams.get("checkSession") && (
 			<section>
 				<a
 					id="slack-sign-in"
