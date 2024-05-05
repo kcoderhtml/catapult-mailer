@@ -4,6 +4,53 @@ import Layout from "../layouts/Layout.astro";
 import { db, Subscribers } from "astro:db";
 
 const subscribers = await db.select().from(Subscribers);
+
+let PageMessage: {
+	ok: boolean;
+	message: string;
+} | null = null;
+
+if (Astro.request.method === "POST") {
+	const data = await Astro.request.formData();
+
+	const subject = data.get("subject");
+	const message = data.get("message");
+	const messageType = data.get("messageType");
+
+	const emails = subscribers.map((subscriber) => subscriber.email);
+
+	const email = {
+		to: import.meta.env.SEND_EMAIL,
+		bcc: emails,
+		from: import.meta.env.SEND_EMAIL,
+		subject: subject,
+		markdown: messageType === "text/markdown" ? message : undefined,
+		html: messageType === "text/html" ? message : undefined,
+		text: messageType === "text/plain" ? message : undefined,
+	};
+
+	const response = await fetch(import.meta.env.EMAIL_API, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: process.env.EMAIL_API_KEY || "",
+		},
+		body: JSON.stringify(email),
+	});
+
+	if (!response.ok) {
+		PageMessage = {
+			ok: false,
+			message: `Failed to send message to users. ${response.status} ${response.statusText}`,
+		};
+		console.log(response.status, response.statusText, await response.text());
+	} else {
+		PageMessage = {
+			ok: true,
+			message: "Email sent successfully!",
+		};
+	}
+}
 ---
 
 <Layout title="Dashboard">
@@ -15,6 +62,14 @@ const subscribers = await db.select().from(Subscribers);
 			You can use this dashboard to send emails to your subscribers. You can
 			also view the list of subscribers and their details.
 		</p>
+
+		{
+			PageMessage && (
+				<p class={PageMessage.ok ? "text-green" : "text-red-400"}>
+					{PageMessage.message}
+				</p>
+			)
+		}
 
 		<h2>Send Email</h2>
 
@@ -28,6 +83,17 @@ const subscribers = await db.select().from(Subscribers);
 				required
 			/>
 
+			<!-- dropdown for text or markdown -->
+			<label for="messageType">Message Type</label>
+			<select
+				name="messageType"
+				id="messageType"
+				class="w-9/12 bg-mantle p-2 rounded"
+			>
+				<option value="text/html">HTML</option>
+				<option value="text/markdown" selected>Markdown</option>
+				<option value="text/plain">Plain Text</option>
+			</select>
 			<label for="message">Message</label>
 			<textarea
 				name="message"
