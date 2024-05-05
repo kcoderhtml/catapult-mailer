@@ -2,7 +2,7 @@ import { defineMiddleware } from "astro:middleware";
 import type { DecodeResult, ExpirationStatus, Session } from "./auth";
 import { decodeSession, encodeSession, checkExpirationStatus, gracePeriod } from "./auth";
 
-const PUBLIC_ROUTES = ["/", "/favicon.ico"];
+const PUBLIC_ROUTES = ["/", "/favicon.ico", "/api/subscribe", "/api/unsubscribe"];
 
 // `context` and `next` are automatically typed
 export const auth = defineMiddleware(async (context, next,) => {
