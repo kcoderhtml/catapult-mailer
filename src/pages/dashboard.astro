@@ -1,5 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
+
+import { db, Subscribers } from "astro:db";
+
+const subscribers = await db.select().from(Subscribers);
 ---
 
 <Layout title="Dashboard">
@@ -11,5 +15,64 @@ import Layout from "../layouts/Layout.astro";
 			You can use this dashboard to send emails to your subscribers. You can
 			also view the list of subscribers and their details.
 		</p>
+
+		<h2>Send Email</h2>
+
+		<form method="post" class="flex flex-col items-center">
+			<label for="subject">Subject</label>
+			<input
+				type="text"
+				name="subject"
+				id="subject"
+				class="w-9/12 bg-mantle p-2 rounded"
+				required
+			/>
+
+			<label for="message">Message</label>
+			<textarea
+				name="message"
+				id="message"
+				class="w-9/12 bg-mantle p-2 rounded"
+				required></textarea>
+
+			<button
+				type="submit"
+				class="bg-yellow dark:bg-red dark:text-crust rounded w-48 mt-5"
+				>Send Email</button
+			>
+		</form>
+
+		<h2>Subscribers</h2>
+		<table>
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Email</th>
+					<th>Subscribed At</th>
+				</tr>
+			</thead>
+			<tbody>
+				{
+					subscribers.map((subscriber) => (
+						<tr>
+							<td>{subscriber.name}</td>
+							<td>{subscriber.email}</td>
+							<td>
+								{subscriber.subscribedAt.toLocaleDateString([], {
+									month: "long",
+									day: "numeric",
+									year: "numeric",
+								}) +
+									" at " +
+									subscriber.subscribedAt.toLocaleTimeString([], {
+										hour: "2-digit",
+										minute: "2-digit",
+									})}
+							</td>
+						</tr>
+					))
+				}
+			</tbody>
+		</table>
 	</article>
 </Layout>
