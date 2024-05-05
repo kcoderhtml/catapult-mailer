@@ -37,14 +37,14 @@ const { title } = Astro.props;
 				<div class="flex items-center justify-between max-w-full text-xl">
 					<a href="/" class="text-blue">Catapult Mailer</a>
 					<div class="flex items-center space-x-4">
-						<a href="/dashboard" class="text-green">Dashboard</a>
+						<a href="/dashboard" class="text-teal">Dashboard</a>
 						{
 							session
-								? <a href="/logout" class="text-green
+								? <a href="/logout" class="text-teal
 								">Logout</a>
 								: <a
 									href=`https://slack.com/openid/connect/authorize?scope=openid%20email%20profile&response_type=code&redirect_uri=${Astro.url.origin}&client_id=2210535565.6593702300176`
-									class="text-green">Login</a>
+									class="text-teal">Login</a>
 						}
 					</div>
 				</div>
