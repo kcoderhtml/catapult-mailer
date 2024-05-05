@@ -1,0 +1,21 @@
+---
+import { getSession, type Session } from "../utils/auth/auth";
+
+let session: Session | null = null;
+const sessionCookie = Astro.cookies.get("session")?.value;
+
+if (sessionCookie) {
+	session = getSession(sessionCookie);
+}
+
+if (session) {
+	// remove the session cookie
+	return new Response(null, {
+		status: 302,
+		headers: {
+			Location: "/",
+			"Set-Cookie": `session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`,
+		},
+	});
+}
+---
