@@ -24,9 +24,21 @@ if (Astro.request.method === "POST") {
 		bcc: emails,
 		from: import.meta.env.SEND_EMAIL,
 		subject: subject,
-		markdown: messageType === "text/markdown" ? message : undefined,
-		html: messageType === "text/html" ? message : undefined,
-		text: messageType === "text/plain" ? message : undefined,
+		markdown:
+			messageType === "text/markdown"
+				? message +
+					`  \n\n If you want to unsubscribe click [here](${Astro.url.origin}/api/unsubscribe)`
+				: undefined,
+		html:
+			messageType === "text/html"
+				? message +
+					`  \n\n If you want to unsubscribe click <a href="${Astro.url.origin}/api/unsubscribe"> here </a>`
+				: undefined,
+		text:
+			messageType === "text/plain"
+				? message +
+					`  \n\n If you want to unsubscribe please go to: ${Astro.url.origin}/api/unsubscribe to unsubscribe.`
+				: undefined,
 	};
 
 	const response = await fetch(import.meta.env.EMAIL_API, {
