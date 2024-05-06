@@ -6,7 +6,7 @@ const Subscribers = defineTable({
     id: column.number({ primaryKey: true, unique: true }),
     name: column.text(),
     email: column.text(),
-    secret: column.text({ default: Math.random().toString(36).substring(2).toString(), optional: true }),
+    secret: column.text(),
     subscribedAt: column.date(),
   },
   indexes: {

@@ -1,6 +1,11 @@
 import type { APIRoute } from 'astro';
 import { db, Subscribers } from 'astro:db';
 
+function generateSecret() {
+    const secret = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    return secret;
+}
+
 export const POST: APIRoute = async ({ params, request }) => {
     try {
         if (request.headers.get("Content-Type") === "application/json") {
@@ -16,7 +21,8 @@ export const POST: APIRoute = async ({ params, request }) => {
             await db.insert(Subscribers).values({
                 name: json.name,
                 email: json.email,
-                subscribedAt: new Date()
+                subscribedAt: new Date(),
+                secret: generateSecret()
             });
 
             return new Response(JSON.stringify({ ok: true, message: "subscribed", email: json.email, name: json.name }), {
