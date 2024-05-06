@@ -5,7 +5,7 @@ import { decodeSession, encodeSession, checkExpirationStatus, gracePeriod } from
 const PUBLIC_ROUTES = ["/", "/favicon.ico", "/api/subscribe", "/api/unsubscribe"];
 
 // `context` and `next` are automatically typed
-export const auth = defineMiddleware(async (context, next,) => {
+export const auth = defineMiddleware(async (context, next) => {
     const cookieName = "session";
     const sessionCookie = context.cookies.get(cookieName);
 
