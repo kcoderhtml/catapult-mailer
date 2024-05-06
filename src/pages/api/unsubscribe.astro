@@ -159,7 +159,7 @@ if (paramEmail && token) {
 			)
 		}
 		{
-			!paramEmail && !token && (
+			!paramEmail && !token && !unsubscribed && (
 				<div class="flex flex-col">
 					<p>
 						We realy hate to make this a two step process, but we need to make
@@ -184,7 +184,7 @@ if (paramEmail && token) {
 		}
 		{
 			paramEmail && !token && (
-				<>
+				<div class="flex flex-col">
 					<p>
 						If the email address you entered is in our database, we've sent you
 						an email with a link to unsubscribe. Please check your inbox.
@@ -208,7 +208,7 @@ if (paramEmail && token) {
 							Unsubscribe
 						</button>
 					</form>
-				</>
+				</div>
 			)
 		}
 		{
