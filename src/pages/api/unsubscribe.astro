@@ -1,0 +1,236 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { db, like, Subscribers } from "astro:db";
+
+let error: { ok: boolean; message: string } | null = null;
+
+let paramEmail = Astro.url.searchParams.get("email");
+const token = Astro.url.searchParams.get("token");
+let name: string | null = null;
+let unsubscribed = false;
+
+if (Astro.request.method === "POST") {
+	const data = await Astro.request.formData();
+	const email = data.get("email")?.toString();
+	const token = data.get("token")?.toString();
+	const resubscribe = data.get("resubscribe")?.toString();
+	const nameFromForm = data.get("name")?.toString();
+
+	if (email != undefined && token === undefined) {
+		const user = await db
+			.select()
+			.from(Subscribers)
+			.where(like(Subscribers.email, email));
+
+		if (user.length !== 0) {
+			const unsubscribeLink = `${Astro.url.origin}/api/unsubscribe?email=${email}&token=${user[0].secret}`;
+
+			// Send email with unsubscribe link
+			const unsubscribeEmail = {
+				to: user[0].email,
+				from: import.meta.env.SEND_EMAIL,
+				subject: "Unsubscribe from our newsletter",
+				markdown: `Click [here](${unsubscribeLink}) to unsubscribe from our newsletter; or copy the following token and paste it in the unsubscribe page: ${user[0].secret}`,
+			};
+
+			const response = await fetch(import.meta.env.EMAIL_API, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: process.env.EMAIL_API_KEY || "",
+				},
+				body: JSON.stringify(unsubscribeEmail),
+			});
+
+			if (!response.ok) {
+				error = {
+					ok: false,
+					message: `Failed to send message to users. ${response.status} ${response.statusText}`,
+				};
+				console.log(
+					response.status,
+					response.statusText,
+					await response.text()
+				);
+			} else {
+				error = {
+					ok: true,
+					message: "Email sent successfully!",
+				};
+
+				paramEmail = email;
+				name = user[0].name;
+			}
+		} else {
+			error = {
+				ok: false,
+				message: "Email address not found",
+			};
+		}
+	}
+
+	if (email != undefined && token != undefined) {
+		const user = await db
+			.select()
+			.from(Subscribers)
+			.where(like(Subscribers.email, email));
+
+		if (user.length !== 0) {
+			if (user[0].secret === token) {
+				await db.delete(Subscribers).where(like(Subscribers.email, email));
+
+				error = {
+					ok: true,
+					message: "You have been unsubscribed",
+				};
+
+				unsubscribed = true;
+			} else {
+				error = {
+					ok: false,
+					message: "Invalid token",
+				};
+			}
+		} else {
+			error = {
+				ok: false,
+				message: "Email address not found",
+			};
+		}
+	}
+	if (
+		resubscribe === "true" &&
+		email != undefined &&
+		nameFromForm != undefined
+	) {
+		await db.insert(Subscribers).values({
+			email: email,
+			name: nameFromForm,
+			secret: Math.random().toString(36).substring(2),
+			subscribedAt: new Date(),
+		});
+
+		error = {
+			ok: true,
+			message: "You have been resubscribed",
+		};
+	}
+}
+
+if (paramEmail && token) {
+	const user = await db
+		.select()
+		.from(Subscribers)
+		.where(like(Subscribers.email, paramEmail));
+
+	if (user.length !== 0) {
+		if (user[0].secret === token) {
+			await db.delete(Subscribers).where(like(Subscribers.email, paramEmail));
+
+			error = {
+				ok: true,
+				message: "You have been unsubscribed",
+			};
+
+			unsubscribed = true;
+		} else {
+			error = {
+				ok: false,
+				message: "Invalid token",
+			};
+		}
+	} else {
+		error = {
+			ok: false,
+			message: "Email address not found",
+		};
+	}
+}
+---
+
+<Layout title="Unsubscribe" noFooter noHeader>
+	<article
+		class="prose lg:prose-xl text-center prose-neutral dark:prose-invert"
+	>
+		<h1>Unsubscribe</h1>
+		{
+			error && (
+				<p class={error.ok ? "text-green" : "text-red-400"}>{error.message}</p>
+			)
+		}
+		{
+			!paramEmail && !token && (
+				<div class="flex flex-col">
+					<p>
+						We realy hate to make this a two step process, but we need to make
+						sure you're really you. Please enter your email address below and
+						we'll send you a link to unsubscribe.
+					</p>
+					<form method="post" class="flex flex-row items-center self-center">
+						<input
+							type="email"
+							name="email"
+							id="email"
+							class="m-2 bg-crust p-2 rounded focus:outline-none"
+							required
+						/>
+
+						<button type="submit" class="bg-mantle p-3 rounded text-green">
+							Send Unsubscribe Link
+						</button>
+					</form>
+				</div>
+			)
+		}
+		{
+			paramEmail && !token && (
+				<>
+					<p>
+						If the email address you entered is in our database, we've sent you
+						an email with a link to unsubscribe. Please check your inbox.
+					</p>
+					<p>
+						If you already have a token or can't click the link then enter it
+						here:{" "}
+					</p>
+					<form method="post" class="flex flex-row items-center self-center">
+						<input
+							type="text"
+							name="token"
+							id="token"
+							class="m-2 bg-crust p-2 rounded focus:outline-none"
+							required
+						/>
+
+						<input type="hidden" name="email" id="email" value={paramEmail} />
+
+						<button type="submit" class="bg-mantle p-3 rounded text-green">
+							Unsubscribe
+						</button>
+					</form>
+				</>
+			)
+		}
+		{
+			unsubscribed && (
+				<p>
+					You have been unsubscribed! If you would like to resubscribe click the
+					button below.
+					<form method="post">
+						<input type="hidden" name="email" id="email" value={paramEmail} />
+						<input type="hidden" name="name" id="name" value={name} />
+						<button
+							type="submit"
+							value="true"
+							name="resubscribe"
+							id="resubscribe"
+							class="bg-mantle p-3 rounded text-green"
+						>
+							Resubscribe
+						</button>
+					</form>
+				</p>
+			)
+		}
+	</article>
+</Layout>
