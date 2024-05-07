@@ -4,8 +4,6 @@ import { defineMiddleware } from "astro:middleware";
 import arcjet, { shield } from "@arcjet/node";
 import type { ArcjetNodeRequest } from "@arcjet/node";
 
-console.log("Middleware: executing onRequest");
-
 const arcjetShield = defineMiddleware(async (context, next) => {
     const aj = arcjet({
         key: process.env.ARCJET_KEY as string,
@@ -25,13 +23,10 @@ const arcjetShield = defineMiddleware(async (context, next) => {
 
     const decision = await aj.protect(arcjetRequest);
 
-    for (const result of decision.results) {
-        console.log("Rule Result", result);
-    }
-
     console.log("Conclusion", decision.conclusion);
 
     if (decision.isDenied()) {
+        console.log("Reason", decision.reason);
         return new Response("Forbidden", {
             status: 403,
         });
