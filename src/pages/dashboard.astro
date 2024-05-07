@@ -27,17 +27,17 @@ if (Astro.request.method === "POST") {
 		markdown:
 			messageType === "text/markdown"
 				? message +
-					`  \n\n If you want to unsubscribe click [here](${Astro.url.origin}/api/unsubscribe)`
+					`  \n\n You're receiving this email because you subscribed to ${import.meta.env.NAME}'s newsletter. If you'd like to stop receiving emails from ${import.meta.env.NAME}, [unsubscribe here](${Astro.url.origin}/api/unsubscribe)`
 				: undefined,
 		html:
 			messageType === "text/html"
 				? message +
-					`  \n\n If you want to unsubscribe click <a href="${Astro.url.origin}/api/unsubscribe"> here </a>`
+					`  \n\n You're receiving this email because you subscribed to ${import.meta.env.NAME}'s newsletter. If you'd like to stop receiving emails from ${import.meta.env.NAME}, <a href="${Astro.url.origin}/api/unsubscribe"> unsubscribe here </a>`
 				: undefined,
 		text:
 			messageType === "text/plain"
 				? message +
-					`  \n\n If you want to unsubscribe please go to: ${Astro.url.origin}/api/unsubscribe to unsubscribe.`
+					`  \n\n You're receiving this email because you subscribed to ${import.meta.env.NAME}'s newsletter. If you'd like to stop receiving emails from ${import.meta.env.NAME} go to the following link: ${Astro.url.origin}/api/unsubscribe to unsubscribe.`
 				: undefined,
 	};
 
