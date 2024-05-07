@@ -1,0 +1,31 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="404">
+	<article
+		class="prose lg:prose-xl text-center prose-neutral dark:prose-invert"
+	>
+		<h1>404</h1>
+		<p>
+			You've hit a route that doesn't exist.{" "}
+			<a href="/" id="redirect-link" class="text-green"> Head back home </a>
+			.
+		</p>
+	</article>
+</Layout>
+
+<script>
+	const link = document.getElementById("redirect-link") as HTMLAnchorElement;
+
+	// count down to redirect
+	let count = 5;
+	const interval = setInterval(() => {
+		count--;
+		link.innerText = `Heading back home in ${count} seconds`;
+		if (count === 0) {
+			clearInterval(interval);
+			window.location.href = "/";
+		}
+	}, 1000);
+</script>

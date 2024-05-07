@@ -1,9 +1,22 @@
 ---
-interface Props {
-	title: string;
+import { getSession, type Session } from "../utils/auth/auth";
+
+let session: Session | null = null;
+const sessionCookie = Astro.cookies.get("session")?.value;
+
+if (sessionCookie) {
+	session = getSession(sessionCookie);
 }
 
-const { title } = Astro.props;
+interface Props {
+	title: string;
+	noHeader?: boolean;
+	noFooter?: boolean;
+}
+
+const { title, noHeader, noFooter } = Astro.props;
+
+const loggedIn = Astro.url.searchParams.get("checkSession");
 ---
 
 <!doctype html>
@@ -23,17 +36,42 @@ const { title } = Astro.props;
 		<title>{title}</title>
 	</head>
 	<body class="latte dark:macchiato bg-base">
+		{
+			!noHeader && (
+				<header class="mb-16">
+					<nav class="bg-crust dark:bg-crust-dark rounded-lg m-2 p-3">
+						<div class="flex items-center justify-between max-w-full text-xl">
+							<a href="/" class="text-blue">Catapult Mailer</a>
+							<div class="flex items-center space-x-4">
+								<a href="/dashboard" class="text-teal">Dashboard</a>
+								{
+									session || loggedIn
+										? <a href="/logout" class="text-teal
+										">Logout</a>
+										: <a
+											href=`https://slack.com/openid/connect/authorize?scope=openid%20email%20profile&response_type=code&redirect_uri=${Astro.url.origin}&client_id=2210535565.6593702300176`
+											class="text-teal">Login</a>
+								}
+							</div>
+						</div>
+					</nav>
+				</header>
+			) 
+		}
 		<main><slot /></main>
-		<footer class="bg-crust prose prose-neutral dark:prose-invert max-w-full">
-			<p>
-				View the source at <a
-					href="https://github.com/kcoderhtml/catapult-mailer"
-					target="_blank"
-					rel="noopener noreferrer"
-					class="text-green">kcoderhtml/catapult-mailer</a
-				>
-			</p>
-		</footer>
+		{
+			!noFooter && (
+				<footer class="bg-crust prose prose-neutral dark:prose-invert max-w-full mt-16">
+					<p>
+						View the source at <a
+							href="https://github.com/kcoderhtml/catapult-mailer"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="text-green">kcoderhtml/catapult-mailer</a>
+					</p>
+				</footer>
+			)
+		}
 	</body>
 </html>
 <style is:global>
