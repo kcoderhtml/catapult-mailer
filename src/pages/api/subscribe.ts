@@ -9,7 +9,7 @@ function generateSecret() {
     return secret;
 }
 
-export const POST: APIRoute = async ({ params, request }) => {
+export const POST: APIRoute = async ({ request }) => {
     const aj = arcjet({
         key: process.env.ARCJET_KEY!,
         rules: [
@@ -94,7 +94,7 @@ export const POST: APIRoute = async ({ params, request }) => {
     }
 }
 
-export const GET: APIRoute = async ({ params }) => {
+export const GET: APIRoute = async () => {
     return new Response(JSON.stringify({ ok: true, message: "Hello from the subscribe API" }), {
         status: 200,
         headers: {
