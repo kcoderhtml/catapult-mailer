@@ -1,6 +1,7 @@
 import type { TAlgorithm } from "jwt-simple";
 import pkg from 'jwt-simple';
 const { encode, decode } = pkg
+import { db, like, Admins } from 'astro:db';
 
 export interface Session {
     id: number;
@@ -111,6 +112,12 @@ export async function createSession(code: string, url: string): Promise<EncodeRe
             throw new Error("Failed to get user profile: " + profileData.error);
         }
 
+        const existingAdmin = (await db.select().from(Admins).where(like(Admins.slackUserID, initialSlackResponse.authed_user.id)))[0];
+
+        if (!existingAdmin) {
+            throw new Error("User is not an admin");
+        }
+
         const partialSession: PartialSession = {
             id: parseInt(profileData["https://slack.com/user_id"]),
             dateCreated: Date.now(),
@@ -138,7 +145,7 @@ export async function createSession(code: string, url: string): Promise<EncodeRe
         return session;
     } catch (error) {
         console.error("Failed to create token: ", error);
-        return null;
+        throw error;
     }
 }
 
