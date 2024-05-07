@@ -1,9 +1,11 @@
 ---
+import { date } from "astro/zod";
 import Layout from "../layouts/Layout.astro";
 
 import { db, Subscribers } from "astro:db";
+import { like } from "astro:db";
 
-const subscribers = await db.select().from(Subscribers);
+let subscribers = await db.select().from(Subscribers);
 
 let PageMessage: {
 	ok: boolean;
@@ -17,50 +19,74 @@ if (Astro.request.method === "POST") {
 	const message = data.get("message");
 	const messageType = data.get("messageType");
 
-	const emails = subscribers.map((subscriber) => subscriber.email);
+	if (data.has("send")) {
+		const emails = subscribers.map((subscriber) => subscriber.email);
 
-	const email = {
-		to: import.meta.env.SEND_EMAIL,
-		bcc: emails,
-		from: import.meta.env.SEND_EMAIL,
-		subject: subject,
-		markdown:
-			messageType === "text/markdown"
-				? message +
-					`  \n\n If you want to unsubscribe click [here](${Astro.url.origin}/api/unsubscribe)`
-				: undefined,
-		html:
-			messageType === "text/html"
-				? message +
-					`  \n\n If you want to unsubscribe click <a href="${Astro.url.origin}/api/unsubscribe"> here </a>`
-				: undefined,
-		text:
-			messageType === "text/plain"
-				? message +
-					`  \n\n If you want to unsubscribe please go to: ${Astro.url.origin}/api/unsubscribe to unsubscribe.`
-				: undefined,
-	};
-
-	const response = await fetch(import.meta.env.EMAIL_API, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: process.env.EMAIL_API_KEY || "",
-		},
-		body: JSON.stringify(email),
-	});
-
-	if (!response.ok) {
-		PageMessage = {
-			ok: false,
-			message: `Failed to send message to users. ${response.status} ${response.statusText}`,
+		const email = {
+			to: import.meta.env.SEND_EMAIL,
+			bcc: emails,
+			from: import.meta.env.SEND_EMAIL,
+			subject: subject,
+			markdown:
+				messageType === "text/markdown"
+					? message +
+						`  \n\n You're receiving this email because you subscribed to ${import.meta.env.NAME}'s newsletter. If you'd like to stop receiving emails from ${import.meta.env.NAME}, [unsubscribe here](${Astro.url.origin}/api/unsubscribe)`
+					: undefined,
+			html:
+				messageType === "text/html"
+					? message +
+						`  \n\n You're receiving this email because you subscribed to ${import.meta.env.NAME}'s newsletter. If you'd like to stop receiving emails from ${import.meta.env.NAME}, <a href="${Astro.url.origin}/api/unsubscribe"> unsubscribe here </a>`
+					: undefined,
+			text:
+				messageType === "text/plain"
+					? message +
+						`  \n\n You're receiving this email because you subscribed to ${import.meta.env.NAME}'s newsletter. If you'd like to stop receiving emails from ${import.meta.env.NAME} go to the following link: ${Astro.url.origin}/api/unsubscribe to unsubscribe.`
+					: undefined,
 		};
-		console.log(response.status, response.statusText, await response.text());
-	} else {
-		PageMessage = {
-			ok: true,
-			message: "Email sent successfully!",
-		};
+
+		const response = await fetch(import.meta.env.EMAIL_API, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: process.env.EMAIL_API_KEY || "",
+			},
+			body: JSON.stringify(email),
+		});
+
+		if (!response.ok) {
+			PageMessage = {
+				ok: false,
+				message: `Failed to send message to users. ${response.status} ${response.statusText}`,
+			};
+			console.log(response.status, response.statusText, await response.text());
+		} else {
+			PageMessage = {
+				ok: true,
+				message: "Email sent successfully!",
+			};
+		}
+	} else if (data.has("remove")) {
+		const email = data.get("email");
+
+		const response = await db
+			.delete(Subscribers)
+			.where(like(Subscribers.email, email as string));
+
+		subscribers = subscribers.filter(
+			(subscriber) => subscriber.email !== email
+		);
+
+		if (response) {
+			PageMessage = {
+				ok: true,
+				message: "User removed",
+			};
+		} else {
+			PageMessage = {
+				ok: false,
+				message: "Failed to remove user",
+			};
+		}
 	}
 }
 ---
@@ -115,6 +141,7 @@ if (Astro.request.method === "POST") {
 
 			<button
 				type="submit"
+				name="send"
 				class="bg-yellow dark:bg-red dark:text-crust rounded w-48 mt-5"
 				>Send Email</button
 			>
@@ -127,6 +154,7 @@ if (Astro.request.method === "POST") {
 					<th>Name</th>
 					<th>Email</th>
 					<th>Subscribed At</th>
+					<th>Remove user</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -146,6 +174,18 @@ if (Astro.request.method === "POST") {
 										hour: "2-digit",
 										minute: "2-digit",
 									})}
+							</td>
+							<td>
+								<form method="post">
+									<input type="hidden" name="email" value={subscriber.email} />
+									<button
+										type="submit"
+										name="remove"
+										class="bg-red dark:bg-yellow dark:text-crust rounded p-2"
+									>
+										Remove
+									</button>
+								</form>
 							</td>
 						</tr>
 					))
