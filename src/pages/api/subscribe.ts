@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { db, Subscribers } from 'astro:db';
+import { db, like, Subscribers } from 'astro:db';
 
 import arcjet, { validateEmail } from "@arcjet/node";
 import type { ArcjetNodeRequest } from "@arcjet/node";
@@ -40,8 +40,6 @@ export const POST: APIRoute = async ({ params, request }) => {
                 email: json.email,
             });
 
-            console.log("Arcjet decision", decision);
-
             if (decision.isDenied()) {
                 return new Response(JSON.stringify({ ok: false, reason: decision.reason }), {
                     status: 400,
@@ -50,6 +48,13 @@ export const POST: APIRoute = async ({ params, request }) => {
                     }
                 });
             } else {
+                // check if the email is already subscribed
+                const existing = await db.select().from(Subscribers).where(like(Subscribers.email, json.email));
+
+                if (existing.length > 0) {
+                    throw new Error("Email already subscribed");
+                }
+
                 // Save the email to the database
                 await db.insert(Subscribers).values({
                     name: json.name,
