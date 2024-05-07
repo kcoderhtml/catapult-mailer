@@ -1,5 +1,5 @@
 import { defineMiddleware } from "astro:middleware";
-import type { DecodeResult, ExpirationStatus, Session } from "./auth";
+import type { DecodeResult, ExpirationStatus } from "./auth";
 import { decodeSession, encodeSession, checkExpirationStatus, gracePeriod } from "./auth";
 
 const PUBLIC_ROUTES = ["/", "/favicon.ico", "/api/subscribe", "/api/unsubscribe"];
@@ -42,21 +42,11 @@ export const auth = defineMiddleware(async (context, next) => {
         return unauthorized(`Authorization token has expired. Please create a new authorization token by logging in again.`, true);
     }
 
-
-    let session: Session;
-
     if (expiration === "grace") {
         // Automatically renew the session and send it back with the response
-        const { token, expires, issued } = encodeSession(process.env.JWT_SECRET, decodedSession.session);
-        session = {
-            ...decodedSession.session,
-            expires: expires,
-            issued: issued
-        };
+        const { token, expires } = encodeSession(process.env.JWT_SECRET, decodedSession.session);
 
         context.cookies.set(cookieName, token, { expires: new Date(expires + gracePeriod) });
-    } else {
-        session = decodedSession.session;
     }
 
     // Request has a valid or renewed session. Call next to continue to the authenticated route handler
