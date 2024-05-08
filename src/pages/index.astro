@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { createSession, gracePeriod, getSession } from "../utils/auth/auth";
+import { createSession, getSession, gracePeriod } from "../utils/auth/auth";
 import type { Session } from "../utils/auth/auth";
 
 let session: Session | null = null;
