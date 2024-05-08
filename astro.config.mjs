@@ -7,9 +7,7 @@ import db from "@astrojs/db";
 
 // https://astro.build/config
 export default defineConfig({
-  output: "server",
-  adapter: netlify({
-    edgeMiddleware: true
-  }),
-  integrations: [tailwind(), playformCompress(), db()]
+	output: "server",
+	adapter: netlify(),
+	integrations: [tailwind(), playformCompress(), db()],
 });
