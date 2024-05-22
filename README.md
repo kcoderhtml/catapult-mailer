@@ -17,7 +17,8 @@ Well besides gemini introductions you can find a simple astro site that interfac
 ## Setup
 1. Fork this repo and deploy it to netlify
 2. create a new Astro DB project at [studio.astro.build](https://studio.astro.build/) and generate a new app token to be added to the netlify env below
-3. create a new slack app with the app manifest listed below; make sure to change the name of the app and to install it into your workspace:
+3. Enable Web Vitals in the new Astro DB you just created.
+4. create a new slack app with the app manifest listed below; make sure to change the name of the app and to install it into your workspace:
 ```yaml
 display_information:
   name: Catapult Mailer - {name} Instance # can be whatever this is just what I use
@@ -36,7 +37,7 @@ settings:
   socket_mode_enabled: false
   token_rotation_enabled: false
 ```
-4. setup the ENV in netlify:
+5. setup the ENV in netlify:
 ```s
 ARCJET_KEY=ajkey_xxxxxxxxxxxxxxxxxxxxxxxxxx {you can get this from https://arcjet.com/}
 ASTRO_STUDIO_APP_TOKEN=d478xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx:gbaixxxxxxxxxxxxxxxxxxxxxxxx:gbaixxxxxxxxxxxxxxxxxxxxxxxx {you can get this from your astro db project}
