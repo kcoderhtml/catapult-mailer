@@ -20,7 +20,9 @@ Well besides gemini introductions you can find a simple astro site that interfac
 3. create a new slack app with the app manifest listed below; make sure to change the name of the app and to install it into your workspace:
 ```yaml
 display_information:
-  name: Catapult Mailer - PB Instance
+  name: Catapult Mailer - {name} Instance # can be whatever this is just what I use
+  description: The OAuth Provider for the {name} Catapult Mailer instance # same here
+  background_color: "#735bb5" # could be whatever you want
 oauth_config:
   scopes:
     user:
