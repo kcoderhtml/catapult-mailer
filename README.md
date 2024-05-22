@@ -24,6 +24,8 @@ display_information:
   description: The OAuth Provider for the {name} Catapult Mailer instance # same here
   background_color: "#735bb5" # could be whatever you want
 oauth_config:
+  redirect_urls:
+    - https://your-app-here.netlify.app/
   scopes:
     user:
       - openid
@@ -47,6 +49,7 @@ SLACK_CLIENT_ID=xxxxxxxxxx.xxxxxxxxxxxxx
 SLACK_CLIENT_SECRET=55f7xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 SLACK_SIGNING_SECRET=d597xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
+5. Have fun!
 
 **Ready to take your email marketing to the next level? Grab your flaming arrows and let Catapult Mailer launch your success!**
 
