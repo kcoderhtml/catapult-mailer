@@ -16,7 +16,7 @@ Well besides gemini introductions you can find a simple astro site that interfac
 
 ## Setup
 1. Fork this repo and deploy it to netlify
-2. create a new Astro DB project at [studio.astro.build](https://studio.astro.build/)
+2. create a new Astro DB project at [studio.astro.build](https://studio.astro.build/) and generate a new app token to be added to the netlify env below
 3. create a new slack app with the app manifest listed below; make sure to change the name of the app and to install it into your workspace:
 ```yaml
 display_information:
