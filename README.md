@@ -49,7 +49,10 @@ SLACK_CLIENT_ID=xxxxxxxxxx.xxxxxxxxxxxxx
 SLACK_CLIENT_SECRET=55f7xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 SLACK_SIGNING_SECRET=d597xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
-5. Have fun!
+6. Clone the forked repository and run `bun install` then `bun astro db login && bun astro db link && bun astro db push` to init the remote database
+7. Once the netlify site has been built and deployed succesfully then go to the Astro DB you created and add your admin users to the db in the `ADMINS` table:
+![Screenshot of Astro DB ADMINS Table](/.github/images/admins-table.png)
+8. Have fun!
 
 ## Integration && Use
 The api is very simple to subscribe someone to the newsletter then simply make a post request to your site at /api/subscribe and include the name and email via a json body e.g
