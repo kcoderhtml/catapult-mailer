@@ -14,6 +14,43 @@ Ummmm... seems I may have used a little gemini to write the readme :shushing_fac
 
 Well besides gemini introductions you can find a simple astro site that interfaces with [kcoderhtml/cloudflare-email](https://github.com/kcoderhtml/cloudflare-email) on the backend and is easily deployable with netlify!
 
+## Setup
+1. Fork this repo and deploy it to netlify
+2. create a new Astro DB project at [studio.astro.build](https://studio.astro.build/) and generate a new app token to be added to the netlify env below
+3. create a new slack app with the app manifest listed below; make sure to change the name of the app and to install it into your workspace:
+```yaml
+display_information:
+  name: Catapult Mailer - {name} Instance # can be whatever this is just what I use
+  description: The OAuth Provider for the {name} Catapult Mailer instance # same here
+  background_color: "#735bb5" # could be whatever you want
+oauth_config:
+  redirect_urls:
+    - https://your-app-here.netlify.app/
+  scopes:
+    user:
+      - openid
+      - email
+      - profile
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
+```
+4. setup the ENV in netlify:
+```s
+ARCJET_KEY=ajkey_xxxxxxxxxxxxxxxxxxxxxxxxxx {you can get this from https://arcjet.com/}
+ASTRO_STUDIO_APP_TOKEN=d478xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx:gbaixxxxxxxxxxxxxxxxxxxxxxxx:gbaixxxxxxxxxxxxxxxxxxxxxxxx {you can get this from your astro db project}
+EMAIL_API=https://email.example.com/api/email {change it to be your cloudflare email instance but always add the /api/email on the end of your base domain}
+EMAIL_API_KEY={Whatever you set it to be in your cloudflare email instance}
+JWT_SECRET={generate a new 256 length secret at https://jwtsecret.com/generate or with `openssl rand -hex 256`}
+NAME=Catapult Mailer dev instance
+SEND_EMAIL=sendingemai@example.com
+SLACK_CLIENT_ID=xxxxxxxxxx.xxxxxxxxxxxxx
+SLACK_CLIENT_SECRET=55f7xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+SLACK_SIGNING_SECRET=d597xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+5. Have fun!
+
 **Ready to take your email marketing to the next level? Grab your flaming arrows and let Catapult Mailer launch your success!**
 
 P.S. This repo is licensed with the AGPL-3.0 license which can be found in [LICENSE.md](/LICENSE.md)

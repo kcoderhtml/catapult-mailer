@@ -34,7 +34,7 @@ if (Astro.request.method === "POST") {
 			html:
 				messageType === "text/html"
 					? message +
-						`  \n\n You're receiving this email because you subscribed to ${import.meta.env.NAME}'s newsletter. If you'd like to stop receiving emails from ${import.meta.env.NAME}, <a href="${Astro.url.origin}/api/unsubscribe"> unsubscribe here </a>`
+						`  <br><br> You're receiving this email because you subscribed to ${import.meta.env.NAME}'s newsletter. If you'd like to stop receiving emails from ${import.meta.env.NAME}, <a href="${Astro.url.origin}/api/unsubscribe"> unsubscribe here </a>`
 					: undefined,
 			text:
 				messageType === "text/plain"
