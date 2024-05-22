@@ -51,6 +51,22 @@ SLACK_SIGNING_SECRET=d597xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 5. Have fun!
 
+## Integration && Use
+The api is very simple to subscribe someone to the newsletter then simply make a post request to your site at /api/subscribe and include the name and email via a json body e.g
+```sh
+curl -X POST -H "Content-Type: application/json" -d '{"email": "example@gmail.com", "name": "Example User"}' https://your-app-here.netlify.app/
+```
+or as a fetch
+```js
+fetch('https://your-app-here.netlify.app/api/subscribe', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ email: 'example@gmail.com', name: 'Example User' }),
+})
+```
+
 **Ready to take your email marketing to the next level? Grab your flaming arrows and let Catapult Mailer launch your success!**
 
 P.S. This repo is licensed with the AGPL-3.0 license which can be found in [LICENSE.md](/LICENSE.md)
